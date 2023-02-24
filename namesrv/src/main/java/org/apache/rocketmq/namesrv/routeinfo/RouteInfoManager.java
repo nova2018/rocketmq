@@ -123,17 +123,22 @@ public class RouteInfoManager {
             return;
         }
         try {
+            // + 写锁
             this.lock.writeLock().lockInterruptibly();
             if (this.topicQueueTable.containsKey(topic)) {
+                // topic存在
                 log.info("Topic route already exist.{}, {}", topic, this.topicQueueTable.get(topic));
             } else {
+                // topic不存在
                 // check and construct queue data map
                 Map<String, QueueData> queueDataMap = new HashMap<>();
                 for (QueueData queueData : queueDatas) {
                     if (!this.brokerAddrTable.containsKey(queueData.getBrokerName())) {
+                        // broker不存在
                         log.warn("Register topic contains illegal broker, {}, {}", topic, queueData);
                         return;
                     }
+                    //
                     queueDataMap.put(queueData.getBrokerName(), queueData);
                 }
 
@@ -143,6 +148,7 @@ public class RouteInfoManager {
         } catch (Exception e) {
             log.error("registerTopic Exception", e);
         } finally {
+            // 释放锁
             this.lock.writeLock().unlock();
         }
     }
